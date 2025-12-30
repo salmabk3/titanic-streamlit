@@ -9,24 +9,36 @@ st.set_page_config(
     layout="wide"
 )
 
-# ------------------ LOAD MODEL ------------------
-model = pickle.load(open("model.pkl", "rb"))
+# ------------------ LOAD MODELS ------------------
+rf_model = pickle.load(open("rf_model.pkl", "rb"))
+svm_model = pickle.load(open("svm_model.pkl", "rb"))
+knn_model = pickle.load(open("knn_model.pkl", "rb"))
 scaler = pickle.load(open("scaler.pkl", "rb"))
+
+models = {
+    "Random Forest": rf_model,
+    "Support Vector Machine (SVM)": svm_model,
+    "K-Nearest Neighbors (KNN)": knn_model
+}
 
 # ------------------ TITLE ------------------
 st.markdown(
-    """
-    <h1 style='text-align: center;'>🚢 Titanic Survival Prediction</h1>
-    <p style='text-align: center; font-size:18px;'>
-    Application de Machine Learning pour prédire la survie des passagers du Titanic
-    </p>
-    """,
+    "<h1 style='text-align:center;'>🚢 Titanic Survival Prediction</h1>",
     unsafe_allow_html=True
 )
+st.caption("Comparaison de plusieurs modèles de Machine Learning")
 
 st.divider()
 
 # ------------------ SIDEBAR ------------------
+st.sidebar.header("🧠 Choix du modèle")
+model_name = st.sidebar.selectbox(
+    "Sélectionner le modèle",
+    list(models.keys())
+)
+
+model = models[model_name]
+
 st.sidebar.header("🧾 Informations du passager")
 
 pclass = st.sidebar.selectbox("Classe du passager", [1, 2, 3])
@@ -49,26 +61,26 @@ st.subheader("🔍 Résultat de la prédiction")
 if st.button("Prédire la survie"):
     X_scaled = scaler.transform(X_user)
     prediction = model.predict(X_scaled)
-    proba = model.predict_proba(X_scaled)
 
-    survival_prob = proba[0][1] * 100
+    # Gestion probabilité (SVM peut ne pas avoir predict_proba)
+    if hasattr(model, "predict_proba"):
+        proba = model.predict_proba(X_scaled)[0][1] * 100
+        proba_text = f" (Probabilité : {proba:.2f}%)"
+    else:
+        proba_text = ""
 
     if prediction[0] == 1:
-        st.success(f"✅ Le passager a de fortes chances de **SURVIVRE** ({survival_prob:.2f}%)")
+        st.success(f"✅ Survie prédite avec le modèle **{model_name}**{proba_text}")
     else:
-        st.error(f"❌ Le passager a de faibles chances de **SURVIVRE** ({survival_prob:.2f}%)")
+        st.error(f"❌ Non-survie prédite avec le modèle **{model_name}**{proba_text}")
 
-# ------------------ INFO SECTION ------------------
+# ------------------ INFO ------------------
 st.divider()
-
 st.markdown(
-    """
-    ### ℹ️ À propos du modèle
-    - Modèle utilisé : **Random Forest**
-    - Données : **Titanic Dataset**
+    f"""
+    ### ℹ️ Informations
+    - Modèle sélectionné : **{model_name}**
+    - Données : Titanic Dataset
     - Prétraitement : nettoyage, encodage, standardisation
-    - Objectif : prédire la survie d’un passager
     """
 )
-
-st.caption("Projet Machine Learning – Titanic | ENSA")
