@@ -2,54 +2,73 @@ import streamlit as st
 import numpy as np
 import pickle
 
-# Configuration de la page
+# ------------------ CONFIG PAGE ------------------
 st.set_page_config(
-    page_title="Titanic Survival Prediction",
+    page_title="Titanic Survival Predictor",
     page_icon="🚢",
-    layout="centered"
+    layout="wide"
 )
 
-# Chargement du modèle et du scaler
+# ------------------ LOAD MODEL ------------------
 model = pickle.load(open("model.pkl", "rb"))
 scaler = pickle.load(open("scaler.pkl", "rb"))
 
-# Titre
-st.title("🚢 Titanic Survival Prediction")
+# ------------------ TITLE ------------------
 st.markdown(
     """
-    Cette application permet de prédire la **survie d’un passager du Titanic**
-    à partir de ses caractéristiques personnelles et économiques.
-    """
+    <h1 style='text-align: center;'>🚢 Titanic Survival Prediction</h1>
+    <p style='text-align: center; font-size:18px;'>
+    Application de Machine Learning pour prédire la survie des passagers du Titanic
+    </p>
+    """,
+    unsafe_allow_html=True
 )
 
 st.divider()
 
-# Interface utilisateur
-pclass = st.selectbox("Classe du passager", [1, 2, 3])
-sex = st.selectbox("Sexe", ["male", "female"])
-age = st.slider("Âge", 1, 80, 30)
-sibsp = st.slider("Nombre de frères/sœurs / conjoint", 0, 8, 0)
-parch = st.slider("Nombre de parents / enfants", 0, 6, 0)
-fare = st.slider("Prix du billet", 0.0, 600.0, 50.0)
-embarked = st.selectbox("Port d’embarquement", ["S", "C", "Q"])
+# ------------------ SIDEBAR ------------------
+st.sidebar.header("🧾 Informations du passager")
 
-# Encodage manuel (IDENTIQUE à ton notebook)
+pclass = st.sidebar.selectbox("Classe du passager", [1, 2, 3])
+sex = st.sidebar.selectbox("Sexe", ["male", "female"])
+age = st.sidebar.slider("Âge", 1, 80, 30)
+sibsp = st.sidebar.slider("Frères/Sœurs / Conjoint", 0, 8, 0)
+parch = st.sidebar.slider("Parents / Enfants", 0, 6, 0)
+fare = st.sidebar.slider("Prix du billet", 0.0, 600.0, 50.0)
+embarked = st.sidebar.selectbox("Port d’embarquement", ["S", "C", "Q"])
+
+# ------------------ ENCODING ------------------
 sex = 1 if sex == "male" else 0
 embarked = {"S": 0, "C": 1, "Q": 2}[embarked]
 
-# Données utilisateur
 X_user = np.array([[pclass, sex, age, sibsp, parch, fare, embarked]])
 
-# Prédiction
-if st.button("🔍 Prédire la survie"):
-    X_user_scaled = scaler.transform(X_user)
-    prediction = model.predict(X_user_scaled)
+# ------------------ PREDICTION ------------------
+st.subheader("🔍 Résultat de la prédiction")
+
+if st.button("Prédire la survie"):
+    X_scaled = scaler.transform(X_user)
+    prediction = model.predict(X_scaled)
+    proba = model.predict_proba(X_scaled)
+
+    survival_prob = proba[0][1] * 100
 
     if prediction[0] == 1:
-        st.success("✅ Le passager a de fortes chances de **SURVIVRE**")
+        st.success(f"✅ Le passager a de fortes chances de **SURVIVRE** ({survival_prob:.2f}%)")
     else:
-        st.error("❌ Le passager a de faibles chances de **SURVIVRE**")
+        st.error(f"❌ Le passager a de faibles chances de **SURVIVRE** ({survival_prob:.2f}%)")
 
+# ------------------ INFO SECTION ------------------
 st.divider()
-st.caption("Projet Machine Learning — Dataset Titanic")
 
+st.markdown(
+    """
+    ### ℹ️ À propos du modèle
+    - Modèle utilisé : **Random Forest**
+    - Données : **Titanic Dataset**
+    - Prétraitement : nettoyage, encodage, standardisation
+    - Objectif : prédire la survie d’un passager
+    """
+)
+
+st.caption("Projet Machine Learning – Titanic | ENSA")
