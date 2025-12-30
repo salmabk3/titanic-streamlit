@@ -31,7 +31,7 @@ st.caption("Comparaison de plusieurs modèles de Machine Learning")
 st.divider()
 
 # ------------------ SIDEBAR ------------------
-st.sidebar.header("🧠 Choix du modèle")
+st.sidebar.header(" Choix du modèle")
 model_name = st.sidebar.selectbox(
     "Sélectionner le modèle",
     list(models.keys())
