@@ -62,17 +62,11 @@ if st.button("Prédire la survie"):
     X_scaled = scaler.transform(X_user)
     prediction = model.predict(X_scaled)
 
-    # Gestion probabilité (SVM peut ne pas avoir predict_proba)
-    if hasattr(model, "predict_proba"):
-        proba = model.predict_proba(X_scaled)[0][1] * 100
-        proba_text = f" (Probabilité : {proba:.2f}%)"
-    else:
-        proba_text = ""
-
     if prediction[0] == 1:
-        st.success(f"✅ Survie prédite avec le modèle **{model_name}**{proba_text}")
+        st.success(f"✅ Survie prédite avec le modèle **{model_name}**")
     else:
-        st.error(f"❌ Non-survie prédite avec le modèle **{model_name}**{proba_text}")
+        st.error(f"❌ Non-survie prédite avec le modèle **{model_name}**")
+
 
 # ------------------ INFO ------------------
 st.divider()
